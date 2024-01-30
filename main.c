@@ -66,19 +66,96 @@ int parseStrToInt(char *str)
     return answer;
 }
 
-struct item *processStructure(int structureData, struct item Tree)
+int countStructSum(struct item **Tree)
 {
-    // check if structure exists
-    // create structure el
-    // if empty -> init
-    //  data - argv[1]
-    //  next = NULL
-    // if prev el == TRUE -> prev.next = current
+    int sum = 0;
+    const struct item *tmp = *Tree;
+    while(tmp != NULL) {
+        sum += tmp->data;
+        tmp = tmp->next;
+    }
+    return sum;
+}
+
+int *searchFirstElByData(int dataToSearch, struct item *head)
+{
+    struct item *currentNode = head;
     
-    struct item *tmp = &Tree;
+    while(currentNode != NULL) {
+        if(currentNode->data == dataToSearch) {
+            return (void *)currentNode;
+        }
+        currentNode = currentNode->next;
+    }
 
+    return NULL; // returns null when nothing had found
+}
 
-    return tmp;
+// delete all Nodes by data identifier
+void deleteAllNodesByData(int dataToDelete, struct item **head)
+{
+    struct item *prevNode;
+    struct item *currentNode = *head;
+
+    while (currentNode->next != NULL)
+    {   
+        currentNode = currentNode->next;
+        if(currentNode->data == dataToDelete) {
+            prevNode->next = currentNode->next;
+        }
+        prevNode = currentNode;
+    }   
+}
+
+void insertNodeByIndex(int dataToInsert, int indexToInsert, struct item **head)
+{
+    if (indexToInsert < 0) {
+        return; // Wrong index
+    }
+
+    struct item *newNode = malloc(sizeof(struct item));
+    newNode->data = dataToInsert;
+    newNode->next = NULL;
+
+    if(indexToInsert == 0) {
+        newNode->next = *head;
+        return;
+    }
+
+    struct item *prevNode;
+    struct item *currentNode = *head;
+    int currentIndex = 0;
+
+    while(currentNode != NULL && currentIndex < indexToInsert) {
+        prevNode = currentNode;
+        currentNode = currentNode->next;
+        currentIndex++;
+    }
+
+    if(currentIndex == indexToInsert) {
+        prevNode->next = newNode;
+        newNode->next = currentNode;
+    } else {
+        free(newNode); // Out of arr size
+    }
+}
+
+void addNode(int currentData, struct item **head)
+{
+    struct item *newNode = malloc(sizeof(struct item));
+    newNode->data = currentData;
+    newNode->next = NULL;
+
+    if(*head == NULL) {
+        *head = newNode;
+    } else {
+        struct item *currentNode = *head;
+        while(currentNode->next != NULL)
+        {
+            currentNode = currentNode->next;
+        }
+        currentNode->next = newNode;
+    }
 }
 
 int main(int argc, char *argv[])
@@ -92,19 +169,28 @@ int main(int argc, char *argv[])
         printHelpInfo();
     }
 
-    // add el to Tree struct
+    struct item *Tree = malloc(sizeof(struct item));
+
+    // add an elem to Tree struct
     if(argc == 2) {
-        struct item *Tree = malloc(sizeof(struct item));
         int currentData = parseStrToInt(argv[1]);
 
-        Tree = processStructure(currentData, *Tree);
+        addNode(currentData, &Tree);
+        addNode(currentData+1, &Tree);
+        addNode(currentData, &Tree);
+        addNode(currentData+2, &Tree);
+        addNode(currentData+1, &Tree);
+        addNode(currentData+1, &Tree);
+        addNode(currentData+1, &Tree);
     }
+    
+    printf("The sum is: %d\n", countStructSum(&Tree));
+    printf("Your element %d found and its addres is: %p\n", 12, searchFirstElByData(12, Tree));
+    deleteAllNodesByData(12, &Tree);
+    printf("The sum is: %d\n", countStructSum(&Tree));
+    printf("Your element %d found and its addres is: %p\n", 12, searchFirstElByData(12, Tree));
+    insertNodeByIndex(15, 3, &Tree);
+    printf("The sum is: %d\n", countStructSum(&Tree));
 
     return 0;
 }
-
-// init structure
-// add structure
-// delete structure
-// search el through the structure
-// insert structure
