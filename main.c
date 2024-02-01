@@ -94,17 +94,26 @@ int *searchFirstElByData(int dataToSearch, struct item *head)
 // delete all Nodes by data identifier
 void deleteAllNodesByData(int dataToDelete, struct item **head)
 {
-    struct item *prevNode;
+    struct item *tempNode;
     struct item *currentNode = *head;
 
-    while (currentNode->next != NULL)
-    {   
+    // Delete all comparisons at the beggining
+    while (currentNode != NULL && currentNode->data == dataToDelete) {
+        tempNode = currentNode;
+        *head = currentNode->next;
         currentNode = currentNode->next;
-        if(currentNode->data == dataToDelete) {
-            prevNode->next = currentNode->next;
+        free(tempNode);
+    }
+
+    while(currentNode != NULL && currentNode->next != NULL) {
+        if(currentNode->next->data == dataToDelete) {
+            tempNode = currentNode->next;
+            currentNode->next = tempNode->next;
+            free(tempNode);
+        } else {
+            currentNode = currentNode->next;
         }
-        prevNode = currentNode;
-    }   
+    }
 }
 
 void insertNodeByIndex(int dataToInsert, int indexToInsert, struct item **head)
@@ -114,15 +123,20 @@ void insertNodeByIndex(int dataToInsert, int indexToInsert, struct item **head)
     }
 
     struct item *newNode = malloc(sizeof(struct item));
+    if(newNode == NULL) {
+        printf("Unable to allocate memory!\n");
+        exit(1);
+    }
     newNode->data = dataToInsert;
     newNode->next = NULL;
 
     if(indexToInsert == 0) {
         newNode->next = *head;
+        *head = newNode;
         return;
     }
 
-    struct item *prevNode;
+    struct item *prevNode = NULL;
     struct item *currentNode = *head;
     int currentIndex = 0;
 
@@ -170,12 +184,14 @@ int main(int argc, char *argv[])
     }
 
     struct item *Tree = malloc(sizeof(struct item));
+    Tree->data = 0;
+    Tree->next = NULL;
 
     // add an elem to Tree struct
     if(argc == 2) {
         int currentData = parseStrToInt(argv[1]);
 
-        addNode(currentData, &Tree);
+        addNode(currentData+2, &Tree);
         addNode(currentData+1, &Tree);
         addNode(currentData, &Tree);
         addNode(currentData+2, &Tree);
@@ -185,12 +201,18 @@ int main(int argc, char *argv[])
     }
     
     printf("The sum is: %d\n", countStructSum(&Tree));
-    printf("Your element %d found and its addres is: %p\n", 12, searchFirstElByData(12, Tree));
+    if(searchFirstElByData(15, Tree)) {
+        printf("Your element %d found and its addres is: %p\n", 15, searchFirstElByData(15, Tree));
+    }
     deleteAllNodesByData(12, &Tree);
+    insertNodeByIndex(15, 1, &Tree);
     printf("The sum is: %d\n", countStructSum(&Tree));
-    printf("Your element %d found and its addres is: %p\n", 12, searchFirstElByData(12, Tree));
-    insertNodeByIndex(15, 3, &Tree);
-    printf("The sum is: %d\n", countStructSum(&Tree));
+
+    while(Tree != NULL) {
+        struct item *temp = Tree;
+        Tree = Tree->next;
+        free(temp);
+    }
 
     return 0;
 }
